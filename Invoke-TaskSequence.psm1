@@ -115,17 +115,12 @@ function Invoke-TaskSequence {
 	}
 
 	function Get-DelayInSeconds {
-		log "Getting delay in seconds..."
-		
+		log "Getting delay in seconds..." -L 1
 		$now = Get-Date
-		log "It is now: `"$now`"."
-		log "Specified time is: `"$DelayUntilDateTime`"."
-		
-		log "Getting delay in seconds..."
 		$delay = $DelayUntilDateTime - $now
 		$secondsTotal = $delay.TotalSeconds
 		$seconds = [int]$secondsTotal
-		log "Rounded number of seconds is: `"$seconds`"."
+		log "Rounded number of seconds is: `"$seconds`"." -L 2
 		
 		$seconds
 	}
@@ -133,16 +128,18 @@ function Invoke-TaskSequence {
 	function Do-Delay {
 		if($DelayUntilDateTime) {
 			log "-DelayUntilDateTime was specified."
+			log "It is now: `"$now`"." -L 1
+			log "Specified time is: `"$DelayUntilDateTime`"." -L 1
 			
 			$delaySeconds = Get-DelayInSeconds
 			
 			if($delaySeconds -le 1) {
-				log "The value specified for -DelayUntilDateTime is in the past. Delay will be skipped."
+				log "The value specified for -DelayUntilDateTime is in the past. Delay will be skipped." -L 1
 			}
 			else {
-				log "Delaying `"$delaySeconds`" seconds until `"$DelayUntilDateTime`"..."
+				log "Delaying `"$delaySeconds`" seconds until `"$DelayUntilDateTime`"..." -L 1
 				Start-Sleep -Seconds $delaySeconds
-				log "Delay complete."
+				log "Delay complete." -L 2
 			}
 		}
 		else {
@@ -252,6 +249,7 @@ function Invoke-TaskSequence {
 			}
 			
 			function Do-Stuff {
+				Write-Output "test2"
 				$tsAd = Get-TsAd
 				if($tsAd) {
 					if($TriggerImmediately) {
@@ -264,9 +262,12 @@ function Invoke-TaskSequence {
 						$tsAd = Set-TsAd $tsAd
 					}
 				}
+				Write-Output "test3"
 			}
 			
+			Write-Output "test1"
 			Do-Stuff
+			Write-Output "test4"
 		}
 		
 		$scriptBlock
@@ -295,11 +296,11 @@ function Invoke-TaskSequence {
 		log "Session ended." -L 1
 		
 		log "Session output:" -L 1
-		log "--------------------" -L 2
+		log "--------------------" -L 1
 		log "" -NoTS
 		log ($output | Out-String) -NoTS
 		log "" -NoTS
-		log "--------------------" -L 2
+		log "--------------------" -L 1
 	}
 	
 	function Do-Stuff {
@@ -308,4 +309,6 @@ function Invoke-TaskSequence {
 	}
 	
 	Do-Stuff
+	
+	log "EOF"
 }
