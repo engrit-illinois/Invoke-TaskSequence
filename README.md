@@ -1,5 +1,3 @@
-# THIS SCRIPT IS A WORK IN PROGRESS
-
 # Summary
 Triggers an MECM Task Sequence (TS) on one or more remote machines by communicating directly with the machines' MECM client.  
 
@@ -9,18 +7,19 @@ This is accomplished on each machine by:
 3. Triggering the "schedule" for the newly-modified assignment, which causes the TS to start.
 
 # Usage
-WIP
+1. Download `Invoke-TaskSequence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Invoke-TaskSequence\Invoke-TaskSequence.psm1`.
+2. Run it using the examples and documentation provided below.
 
 # Examples
 
 ### Run on one machine
-`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
 
 ### Wait for a given delay, and then run on one machine
-`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00" -Log ":ENGRIT:"`
 
 ### Run on multiple specific machines
-`Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
 
 ### Run on multiple sequentially-named lab machines
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
@@ -29,19 +28,20 @@ $comps = @(1..10) | ForEach-Object {
 	$num = ([string]$_).PadLeft(2,"0")
 	"comp-name-$($num)"
 }
-Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
+Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
 ```
 
 # Parameters
 
 ### -ComputerNames \<string[]\>
 Required string array.  
-WIP  
+An array of strings representing one or more names of computers to target.  
 
 ### -TsPackageId \<string\>
 Required string.  
-The PackageID of the desired TS.  
+The PackageID of the desired TS to be run.  
 Get this from the MECM console.  
+The TS must be deployed to the target machine(s).  
 
 ### -TsDeploymentId \<string\>
 Required string.  
@@ -51,22 +51,30 @@ This is necessary in case there are multiple deployments of the same TS.
 
 ### -DelayUntilDateTime \<DateTime\>
 Optional DateTime.  
-WIP  
+A string in a valid DateTime format, representing when to perform the operations on the remote machine(s).  
+The script will wait until this time before doing anything.  
+The given time must be in the future, or the script will give a warning and exit without performing any operations.  
+It's recommended to use an unambiguous format such as `"2022-01-01 13:00:00"`.  
 
 ### -DontTriggerImmediately
 Optional switch.  
-WIP  
+When specified, skips triggering the assignment's schedule.  
+Theoretically, this should mean the deployment will get run the next time the client evaluates its deployments.  
+This may only be the case for _Required_ deployments. I've not seen it work for _Available_ deployments.  
+Not recommended. Rely on this at your own risk.  
 
 ### -TestRun
 Optional switch.  
-WIP  
+When specified, the script operates as normal, except it skips performing any operations which actually have an effect on the remote machine(s).  
+This includes the modification of the deployment's local assignment data, and the triggering of the assignment's schedule.  
+Useful to get a report of whether the given TS/Deployment exists in the remote machine's local assignment data, and how it is currently configured.  
 
 ### -Log \<string\>
 Optional string.  
 The full path of a file to log to.  
 If omitted, no log will be created.  
 If `:TS:` is given as part of the string, it will be replaced by a timestamp of when the script was started, with a format specified by `-LogFileTimestampFormat`.  
-Specify `:ENGRIT:` to use a default path (i.e. `c:\engrit\logs\Invoke-AvailableTaskSequence_<timestamp>.log`).  
+Specify `:ENGRIT:` to use a default path (i.e. `c:\engrit\logs\Invoke-TaskSequence_<timestamp>.log`).  
 
 ### -NoConsoleOutput
 Optional switch.  
