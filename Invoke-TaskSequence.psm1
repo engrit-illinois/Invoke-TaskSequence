@@ -358,7 +358,18 @@ function Invoke-TaskSequence {
 		log "Session ended." -L 1
 	}
 	
+	function Log-Inputs {
+		log "Inputs:"
+		log "-ComputerNames: `"$comps`"."
+		log "-TsPackageId: `"$TsPackageId`"."
+		log "-TsDeploymentId: `"$TsDeploymentId`"."
+		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"."
+		log "-DontTriggerImmediately: `"$DontTriggerImmediately`"."
+		log "-TestRun: `"$TestRun`"."
+	}
+	
 	function Do-Stuff {
+		Log-Inputs
 		$validDelay = Do-Delay
 		if($validDelay) {
 			$ComputerNames | ForEach-Object {
