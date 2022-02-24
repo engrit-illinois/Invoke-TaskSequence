@@ -180,8 +180,9 @@ function Invoke-TaskSequence {
 					$Msg = "$ts$Msg"
 				}
 				
-				Write-Host $Msg
+				#Write-Host $Msg
 				#Write-Information $Msg -InformationAction "Continue"
+				Write-Information $Msg
 			}
 			
 			function Get-TsAd {
