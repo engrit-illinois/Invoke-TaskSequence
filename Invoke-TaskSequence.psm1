@@ -360,7 +360,7 @@ function Invoke-TaskSequence {
 	
 	function Log-Inputs {
 		log "Inputs:"
-		$names = $ComputerNames -join ", "
+		$names = $ComputerNames -join "`",`""
 		log "-ComputerNames: `"$names`"." -L 1
 		log "-TsPackageId: `"$TsPackageId`"." -L 1
 		log "-TsDeploymentId: `"$TsDeploymentId`"." -L 1
