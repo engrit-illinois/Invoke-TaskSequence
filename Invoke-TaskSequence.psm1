@@ -138,7 +138,7 @@ function Invoke-TaskSequence {
 			$delaySeconds = Get-DelayInSeconds
 			
 			if($delaySeconds -le 1) {
-				log "The value specified for -DelayUntilDateTime was calculated to be in the past! Enter a valid future DateTime for -DelayUntilDateTime, or omit it to run immediately." -L 1
+				log "The value specified for -DelayUntilDateTime was calculated to be `"$(0 - $delaySeconds)`" seconds in the past! Enter a valid future DateTime for -DelayUntilDateTime, or omit it to run immediately." -L 1
 				$validDelay = $false
 			}
 			else {
