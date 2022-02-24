@@ -156,7 +156,7 @@ function Invoke-TaskSequence {
 			)
 			
 			function Get-TsAd {
-				Write-Output "Retrieving local TS advertisements from WMI..."
+				Write-Host "Retrieving local TS advertisements from WMI..."
 				$tsAds = Get-CimInstance -Namespace "root\ccm\policy\machine\actualconfig" -Class "CCM_TaskSequence"
 				
 				if(-not $tsAds) {
