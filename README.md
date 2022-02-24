@@ -1,12 +1,12 @@
 # Summary
-Triggers an MECM Task Sequence (TS) on one or more remote machines by communicating directly with the machines' MECM client.  
+Triggers an MECM Task Sequence (TS) on one or more remote machines by communicating directly with the machines' MECM client, optionally after a configurable delay.  
 
 This is accomplished on each machine by:  
 1. Entering a remote powershell session to the target machine.
 2. Modifying the target deployment's local assignment (a.k.a. advertisement) data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before.
 3. Triggering the "schedule" for the newly-modified assignment, which causes the TS to start.
 
-Note: this is primarily intended for running TSes deployed as _Available_, on demand. It may work for TSes deployed as _Required_, but this is not fully tested.  
+Note: this is primarily intended for running TSes deployed as _Available_, on demand. It may work for TSes deployed as _Required_, but this is not fully tested. I will do more testing with _Required_ deployments in the future.  
 
 # Usage
 1. Download `Invoke-TaskSequence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Invoke-TaskSequence\Invoke-TaskSequence.psm1`.
@@ -43,7 +43,7 @@ An array of strings representing one or more names of computers to target.
 Required string.  
 The PackageID of the desired TS to be run.  
 Get this from the MECM console.  
-The TS must be deployed to the target machine(s).  
+The TS must be deployed to the target machine(s), to Software Center.  
 
 ### -TsDeploymentId \<string\>
 Required string.  
@@ -62,8 +62,9 @@ It's recommended to use an unambiguous format such as `"2022-01-01 13:00:00"`.
 Optional switch.  
 When specified, skips triggering the assignment's schedule.  
 Theoretically, this should mean the deployment will get run the next time the client evaluates its deployments.  
-This may only be the case for _Required_ deployments. I've not seen it work for _Available_ deployments.  
+This may only be the case for _Required_ deployments, and possibly only when they have a schedule configured. I've not seen it work for _Available_ deployments.  
 Not recommended. Rely on this at your own risk.  
+I will do more testing with _Required_ deployments in the future.  
 
 ### -TestRun
 Optional switch.  
