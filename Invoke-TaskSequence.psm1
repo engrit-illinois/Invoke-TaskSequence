@@ -153,7 +153,8 @@ function Invoke-TaskSequence {
 				[string]$TsPackageId,
 				[string]$TsDeploymentId,
 				[bool]$TriggerImmediately=$false,
-				[string]$LogLineTimestampFormat
+				[string]$LogLineTimestampFormat,
+				[string]$Indent
 			)
 			
 			function log {
@@ -166,8 +167,8 @@ function Invoke-TaskSequence {
 				)
 
 				# Custom indent per message, good for making output much more readable
-				$K = $L + 2
-				for($i = 0; $i -lt $K; $i += 1) {
+				$L2 = $L + 2
+				for($i = 0; $i -lt $L2; $i += 1) {
 					$Msg = "$Indent$Msg"
 				}
 
@@ -315,11 +316,11 @@ function Invoke-TaskSequence {
 		
 		log "Sending commands to session..." -L 1
 		log "------------------------------" -L 1
-		log "" -NoTS
+		log " " -NoTS
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1 | Tee-Object -FilePath $Log -Append
-		log "" -NoTS
+		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+		log " " -NoTS
 		log "------------------------------" -L 1
 		log "Done sending commands to session." -L 1
 		
