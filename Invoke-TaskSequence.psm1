@@ -162,12 +162,12 @@ function Invoke-TaskSequence {
 					[string]$Msg = "",
 
 					[int]$L = 0, # level of indentation
-					[switch]$NoTS, # omit timestamp
-					[switch]$NoNL # omit newline after output
+					[switch]$NoTS # omit timestamp
 				)
 
 				# Custom indent per message, good for making output much more readable
-				for($i = 0; $i -lt $L; $i += 1) {
+				$L2 = $L + 2
+				for($i = 0; $i -lt $L2; $i += 1) {
 					$Msg = "$Indent$Msg"
 				}
 
@@ -179,15 +179,9 @@ function Invoke-TaskSequence {
 					}
 					$Msg = "$ts$Msg"
 				}
-
-				if($NoNL) {
-					Write-Host $Msg -NoNewline
-				}
-				else {
-					Write-Host $Msg
-				}
 				
-				Write-Information $Msg
+				#Write-Host $Msg
+				Write-Information $Msg -InformationAction "Continue"
 			}
 			
 			function Get-TsAd {
