@@ -6,6 +6,8 @@ This is accomplished on each machine by:
 2. Modifying the target deployment's local assignment (a.k.a. advertisement) data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before.
 3. Triggering the "schedule" for the newly-modified assignment, which causes the TS to start.
 
+Note: this is primarily intended for running TSes deployed as _Available_, on demand. It may work for TSes deployed as _Required_, but this is not fully tested.  
+
 # Usage
 1. Download `Invoke-TaskSequence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Invoke-TaskSequence\Invoke-TaskSequence.psm1`.
 2. Run it using the examples and documentation provided below.
