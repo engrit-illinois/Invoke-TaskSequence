@@ -9,19 +9,22 @@ WIP
 # Examples
 
 ### Run on one machine
-`Invoke-TaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
 
 ### Wait for a given delay, and then run on one machine
-`Invoke-TaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00"`
 
-### Run on multiple sequential lab computers
+### Run on multiple specific machines
+`Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
+
+### Run on multiple sequentially-named lab machines
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
 ```powershell
-foreach($int in @(1..10)) {
+$comps = @(1..10) | ForEach-Object {
 	$num = ([string]$int).PadLeft(2,"0")
-	$comp = "comp-name-$($num)"
-	Invoke-TaskSequence -ComputerName $comp -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
+	"comp-name-$($num)"
 }
+Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
 ```
 
 # Behavior
@@ -32,8 +35,9 @@ This is accomplished by the following steps:
 
 # Parameters
 
-### -ComputerName \<string\>
-WIP
+### -ComputerNames \<string[]\>
+Required string array.  
+WIP  
 
 ### -TsPackageId \<string\>
 Required string.  

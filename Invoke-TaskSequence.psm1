@@ -1,7 +1,7 @@
 function Invoke-TaskSequence {
 	param(
 		[Parameter(Mandatory=$true)]
-		[string]$ComputerName,
+		[string[]]$ComputerNames,
 		
 		[Parameter(Mandatory=$true)]
 		[string]$TsPackageId,
@@ -328,9 +328,9 @@ function Invoke-TaskSequence {
 		$scriptBlock
 	}
 	
-	function Do-Session {
-		log "Starting PSSession to `"$ComputerName`"..."
-		$session = New-PSSession -ComputerName $ComputerName
+	function Do-Session($comp) {
+		log "Starting PSSession to `"$comp`"..."
+		$session = New-PSSession -ComputerName $comp
 		
 		log "Sending commands to session..." -L 1
 		log "------------------------------" -L 1
@@ -349,7 +349,9 @@ function Invoke-TaskSequence {
 	
 	function Do-Stuff {
 		Do-Delay
-		Do-Session
+		$ComputerNames | ForEach-Object {
+			Do-Session $_
+		}
 	}
 	
 	Do-Stuff
