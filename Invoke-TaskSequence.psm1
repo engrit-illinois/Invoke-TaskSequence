@@ -360,7 +360,7 @@ function Invoke-TaskSequence {
 	
 	function Log-Inputs {
 		log "Inputs:"
-		log "-ComputerNames: `"$comps`"." -L 1
+		log "-ComputerNames: `"$ComputerNames`"." -L 1
 		log "-TsPackageId: `"$TsPackageId`"." -L 1
 		log "-TsDeploymentId: `"$TsDeploymentId`"." -L 1
 		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"." -L 1
