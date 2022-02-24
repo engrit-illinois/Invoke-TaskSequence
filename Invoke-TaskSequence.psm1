@@ -166,8 +166,8 @@ function Invoke-TaskSequence {
 				)
 
 				# Custom indent per message, good for making output much more readable
-				$L2 = $L + 2
-				for($i = 0; $i -lt $L2; $i += 1) {
+				$K = $L + 2
+				for($i = 0; $i -lt $K; $i += 1) {
 					$Msg = "$Indent$Msg"
 				}
 
