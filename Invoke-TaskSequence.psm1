@@ -313,21 +313,18 @@ function Invoke-TaskSequence {
 		$session = New-PSSession -ComputerName $ComputerName
 		
 		log "Sending commands to session..." -L 1
+		log "------------------------------" -L 1
+		log "" -NoTS
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		$output = Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1 | Tee-Object -FilePath $Log -Append
+		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1 | Tee-Object -FilePath $Log -Append
+		log "" -NoTS
+		log "------------------------------" -L 1
 		log "Done sending commands to session." -L 1
 		
 		log "Ending session..." -L 1
 		Remove-PSSession $session
 		log "Session ended." -L 1
-		
-		log "Session output:" -L 1
-		log "--------------------" -L 1
-		log "" -NoTS
-		log ($output | Out-String) -NoTS
-		log "" -NoTS
-		log "--------------------" -L 1
 	}
 	
 	function Do-Stuff {
