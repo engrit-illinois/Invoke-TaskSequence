@@ -21,7 +21,7 @@ WIP
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
 ```powershell
 $comps = @(1..10) | ForEach-Object {
-	$num = ([string]$int).PadLeft(2,"0")
+	$num = ([string]$_).PadLeft(2,"0")
 	"comp-name-$($num)"
 }
 Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
