@@ -11,7 +11,7 @@ function Invoke-TaskSequence {
 		
 		[DateTime]$DelayUntilDateTime,
 		
-		[switch]$TriggerImmediately,
+		[switch]$DontTriggerImmediately,
 		
 		[switch]$TestRun,
 		
@@ -154,7 +154,7 @@ function Invoke-TaskSequence {
 			param(
 				[string]$TsPackageId,
 				[string]$TsDeploymentId,
-				[bool]$TriggerImmediately=$false,
+				[bool]$DontTriggerImmediately=$false,
 				[bool]$TestRun=$false,
 				[string]$LogLineTimestampFormat,
 				[string]$Indent
@@ -299,11 +299,11 @@ function Invoke-TaskSequence {
 					log "-TestRun was specified. Skipping triggering TS." -L 1
 				}
 				else {
-					if(-not $TriggerImmediately) {
-						log "-TriggerImmediately was NOT specified. TS should be triggered on next deployment evaluation." -L 1
+					if($DontTriggerImmediately) {
+						log "-DontTriggerImmediately was specified. TS should be triggered on deployment schedule during next deployment evaluation." -L 1
 					}
 					else {
-						log "-TriggerImmediately was specified. Triggering schedule for newly-modified local advertisement..." -L 1
+						log "Triggering schedule for newly-modified local advertisement..." -L 1
 						Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
 					}
 				}
@@ -312,15 +312,10 @@ function Invoke-TaskSequence {
 			function Do-Stuff {
 				$tsAd = Get-TsAd
 				if($tsAd) {
-					
-					if($TriggerImmediately) {
-						$scheduleId = Get-ScheduleId
-						if($scheduleId) {
-							Trigger-TS $scheduleId
-						}
-					}
-					else {
-						$tsAd = Set-TsAd $tsAd
+					$tsAd = Set-TsAd $tsAd
+					$scheduleId = Get-ScheduleId
+					if($scheduleId) {
+						Trigger-TS $scheduleId
 					}
 				}
 			}
@@ -328,14 +323,6 @@ function Invoke-TaskSequence {
 			Do-Stuff
 			
 			log "EOS"
-		}
-		
-		$scriptBlock
-	}
-	
-	function Get-TestScriptBlock {
-		$scriptBlock = {
-			getmac
 		}
 		
 		$scriptBlock
@@ -350,7 +337,7 @@ function Invoke-TaskSequence {
 		log " " -NoTS
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
 		log " " -NoTS
 		log "------------------------------" -L 1
 		log "Done sending commands to session." -L 1

@@ -8,30 +8,27 @@ WIP
 
 # Examples
 
-### Run on one machine, and let the deployment get triggered whenever the client re-evaluates its deployments
-`Invoke-AvailableTaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
+### Run on one machine
+`Invoke-TaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"`
 
-### Run on one machine, and trigger the deployment immediately
-`Invoke-AvailableTaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -TriggerImmediately`
+### Wait for a given delay, and then run on one machine
+`Invoke-TaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00"`
 
-### Wait for a given delay, and then run on one machine and trigger the deployment immediately
-`Invoke-AvailableTaskSequence -ComputerName "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00" -TriggerImmediately`
-
-### Run on multiple sequential lab computers, and trigger each immediately
+### Run on multiple sequential lab computers
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
 ```powershell
 foreach($int in @(1..10)) {
 	$num = ([string]$int).PadLeft(2,"0")
 	$comp = "comp-name-$($num)"
-	Invoke-AvailableTaskSequence -ComputerName $comp -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -TriggerImmediately
+	Invoke-TaskSequence -ComputerName $comp -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
 }
 ```
 
 # Behavior
 This is accomplished by the following steps:
-1. Enter a remote powershell session to the target machine.
-2. If `-TriggerImmediately` is specified, triggers the TS.
-3. If `-TriggerImmediately` is _not_ specified, modifies the deployment's local assignment data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before. This should cause the deployment to initiate the next time the client evaluates its deployments.
+1. Enters a remote powershell session to the target machine.
+2. Modifies the deployment's local assignment (a.k.a. advertisement) data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before.
+3. Triggers the "schedule" for the newly-modified assignment, which causes the TS to start.
 
 # Parameters
 
@@ -53,7 +50,7 @@ This is necessary in case there are multiple deployments of the same TS.
 Optional DateTime.  
 WIP  
 
-### -TriggerImmediately
+### -DontTriggerImmediately
 Optional switch.  
 WIP  
 
