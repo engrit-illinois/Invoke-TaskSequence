@@ -353,7 +353,7 @@ function Invoke-TaskSequence {
 	}
 	
 	function Do-Stuff {
-		Do-Delay
+		$validDelay = Do-Delay
 		if($validDelay) {
 			$ComputerNames | ForEach-Object {
 				Do-Session $_
