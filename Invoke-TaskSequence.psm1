@@ -13,6 +13,8 @@ function Invoke-TaskSequence {
 		
 		[switch]$TriggerImmediately,
 		
+		[switch]$TestRun,
+		
 		# ":ENGRIT:" will be replaced with "c:\engrit\logs\$($MODULE_NAME)_:TS:.log"
 		# ":TS:" will be replaced with start timestamp
 		[string]$Log,
@@ -153,6 +155,7 @@ function Invoke-TaskSequence {
 				[string]$TsPackageId,
 				[string]$TsDeploymentId,
 				[bool]$TriggerImmediately=$false,
+				[bool]$TestRun=$false,
 				[string]$LogLineTimestampFormat,
 				[string]$Indent
 			)
@@ -181,8 +184,6 @@ function Invoke-TaskSequence {
 					$Msg = "$ts$Msg"
 				}
 				
-				#Write-Host $Msg
-				#Write-Information $Msg -InformationAction "Continue"
 				Write-Information $Msg
 			}
 			
@@ -220,13 +221,19 @@ function Invoke-TaskSequence {
 				# Set the RepeatRunBehavior property of this local advertisement to trick the client into thinking it should always rerun, regardless of previous success/failure
 				if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
 					log "Changing ADV_RepeatRunBehavior to `"RerunAlways`"." -L 1
-					$tsAd.ADV_RepeatRunBehavior = "RerunAlways"
-					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
-						log "Failed to change ADV_RepeatRunBehavior!" -L 2
+					
+					if($TestRun) {
+						log "-TestRun was specified. Skipping modification of ADV_RepeatRunBehavior." -L 1
 					}
 					else {
-						log "Successfully changed ADV_RepeatRunBehavior." -L 2
+						$tsAd.ADV_RepeatRunBehavior = "RerunAlways"
+						$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
+						if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
+							log "Failed to change ADV_RepeatRunBehavior!" -L 2
+						}
+						else {
+							log "Successfully changed ADV_RepeatRunBehavior." -L 2
+						}
 					}
 				}
 				else {
@@ -240,13 +247,19 @@ function Invoke-TaskSequence {
 				# Set the MandatoryAssignments property of this local advertisement to trick the client into thinking it's a Required deployment, regardless of whether it actually is
 				if($tsAd.ADV_MandatoryAssignments -ne $true) {
 					log "Changing ADV_MandatoryAssignments to `"$true`"." -L 1
-					$tsAd.ADV_MandatoryAssignments = $true
-					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					if(-not $tsAd.ADV_MandatoryAssignments) {
-						log "Failed to change ADV_MandatoryAssignments!" -L 2
+					
+					if($TestRun) {
+						log "-TestRun was specified. Skipping modification of ADV_MandatoryAssignments." -L 1
 					}
 					else {
-						log "Successfully changed ADV_MandatoryAssignments." -L 2
+						$tsAd.ADV_MandatoryAssignments = $true
+						$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
+						if(-not $tsAd.ADV_MandatoryAssignments) {
+							log "Failed to change ADV_MandatoryAssignments!" -L 2
+						}
+						else {
+							log "Successfully changed ADV_MandatoryAssignments." -L 2
+						}
 					}
 				}
 				else {
@@ -282,12 +295,17 @@ function Invoke-TaskSequence {
 				# Get the schedule for the newly modified advertisement and trigger it to run
 				log "Triggering TS..."
 				
-				if(-not $TriggerImmediately) {
-					log "-TriggerImmediately was NOT specified. TS should be triggered on next deployment evaluation." -L 1
+				if($TestRun) {
+					log "-TestRun was specified. Skipping triggering TS." -L 1
 				}
 				else {
-					log "-TriggerImmediately was specified. Triggering schedule for newly-modified local advertisement..." -L 1
-					Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
+					if(-not $TriggerImmediately) {
+						log "-TriggerImmediately was NOT specified. TS should be triggered on next deployment evaluation." -L 1
+					}
+					else {
+						log "-TriggerImmediately was specified. Triggering schedule for newly-modified local advertisement..." -L 1
+						Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
+					}
 				}
 			}
 			
@@ -332,7 +350,7 @@ function Invoke-TaskSequence {
 		log " " -NoTS
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
 		log " " -NoTS
 		log "------------------------------" -L 1
 		log "Done sending commands to session." -L 1

@@ -35,25 +35,29 @@ This is accomplished by the following steps:
 
 # Parameters
 
-### ComputerName \<string\>
+### -ComputerName \<string\>
 WIP
 
-### TsPackageId \<string\>
+### -TsPackageId \<string\>
 Required string.  
 The PackageID of the desired TS.  
 Get this from the MECM console.  
 
-### TsDeploymentId \<string\>
+### -TsDeploymentId \<string\>
 Required string.  
 The DeploymentID of the desired deployment of the desired TS.  
 Get this from the MECM console.  
 This is necessary in case there are multiple deployments of the same TS.  
 
-### DelayUntilDateTime \<DateTime\>
+### -DelayUntilDateTime \<DateTime\>
 Optional DateTime.  
 WIP  
 
-### TriggerImmediately
+### -TriggerImmediately
+Optional switch.  
+WIP  
+
+### -TestRun
 Optional switch.  
 WIP  
 
