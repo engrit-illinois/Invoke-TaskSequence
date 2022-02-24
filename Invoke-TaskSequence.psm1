@@ -360,12 +360,12 @@ function Invoke-TaskSequence {
 	
 	function Log-Inputs {
 		log "Inputs:"
-		log "-ComputerNames: `"$comps`"."
-		log "-TsPackageId: `"$TsPackageId`"."
-		log "-TsDeploymentId: `"$TsDeploymentId`"."
-		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"."
-		log "-DontTriggerImmediately: `"$DontTriggerImmediately`"."
-		log "-TestRun: `"$TestRun`"."
+		log "-ComputerNames: `"$comps`"." -L 1
+		log "-TsPackageId: `"$TsPackageId`"." -L 1
+		log "-TsDeploymentId: `"$TsDeploymentId`"." -L 1
+		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"." -L 1
+		log "-DontTriggerImmediately: `"$DontTriggerImmediately`"." -L 1
+		log "-TestRun: `"$TestRun`"." -L 1
 	}
 	
 	function Do-Stuff {
