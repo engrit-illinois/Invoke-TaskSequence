@@ -181,11 +181,13 @@ function Invoke-TaskSequence {
 				}
 
 				if($NoNL) {
-					Write-Information $Msg -NoNewline
+					Write-Host $Msg -NoNewline
 				}
 				else {
-					Write-Information $Msg
+					Write-Host $Msg
 				}
+				
+				Write-Information $Msg
 			}
 			
 			function Get-TsAd {
