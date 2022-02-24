@@ -315,7 +315,7 @@ function Invoke-TaskSequence {
 		log "Sending commands to session..." -L 1
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		$output = Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1
+		$output = Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1 | Tee-Object -FilePath $Log -Append
 		log "Done sending commands to session." -L 1
 		
 		log "Ending session..." -L 1
