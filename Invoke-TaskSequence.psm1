@@ -200,6 +200,10 @@ function Invoke-TaskSequence {
 					if(-not $tsAd) {
 						log "Failed to get local advertisement!" -L 2
 					}
+					else {
+						log "ADV_RepeatRunBehavior is currently set to `"$($tsAd.ADV_RepeatRunBehavior)`"." -L 2
+						log "ADV_MandatoryAssignments is currently set to `"$($tsAd.ADV_MandatoryAssignments)`"." -L 2
+					}
 				}
 				
 				$tsAd
@@ -214,15 +218,19 @@ function Invoke-TaskSequence {
 			
 			function Set-RerunAlways($tsAd) {
 				# Set the RepeatRunBehavior property of this local advertisement to trick the client into thinking it should always rerun, regardless of previous success/failure
-				log "ADV_RepeatRunBehavior is currently set to `"$($tsAd.ADV_RepeatRunBehavior)`"." -L 1
 				if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
-					log "Changing ADV_RepeatRunBehavior to `"RerunAlways`"." -L 2
+					log "Changing ADV_RepeatRunBehavior to `"RerunAlways`"." -L 1
 					$tsAd.ADV_RepeatRunBehavior = "RerunAlways"
 					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					log "ADV_RepeatRunBehavior is now set to `"$($tsAd.ADV_RepeatRunBehavior)`"." -L 2
+					if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
+						log "Failed to change ADV_RepeatRunBehavior!" -L 2
+					}
+					else {
+						log "Successfully changed ADV_RepeatRunBehavior." -L 2
+					}
 				}
 				else {
-					log "No need to change ADV_RepeatRunBehavior." -L 2
+					log "No need to change ADV_RepeatRunBehavior." -L 1
 				}
 				
 				$tsAd
@@ -230,15 +238,19 @@ function Invoke-TaskSequence {
 			
 			function Set-Mandatory($tsAd) {
 				# Set the MandatoryAssignments property of this local advertisement to trick the client into thinking it's a Required deployment, regardless of whether it actually is
-				log "ADV_MandatoryAssignments is currently set to `"$($tsAd.ADV_MandatoryAssignments)`"." -L 1
 				if($tsAd.ADV_MandatoryAssignments -ne $true) {
-					log "Changing ADV_MandatoryAssignments to `"$true`"." -L 2
+					log "Changing ADV_MandatoryAssignments to `"$true`"." -L 1
 					$tsAd.ADV_MandatoryAssignments = $true
 					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					log "ADV_MandatoryAssignments is now set to `"$($tsAd.ADV_MandatoryAssignments)`"." -L 2
+					if(-not $tsAd.ADV_MandatoryAssignments) {
+						log "Failed to change ADV_MandatoryAssignments!" -L 2
+					}
+					else {
+						log "Successfully changed ADV_MandatoryAssignments." -L 2
+					}
 				}
 				else {
-					log "No need to change ADV_MandatoryAssignments." -L 2
+					log "No need to change ADV_MandatoryAssignments." -L 1
 				}
 				
 				$tsAd
@@ -282,6 +294,7 @@ function Invoke-TaskSequence {
 			function Do-Stuff {
 				$tsAd = Get-TsAd
 				if($tsAd) {
+					
 					if($TriggerImmediately) {
 						$scheduleId = Get-ScheduleId
 						if($scheduleId) {
