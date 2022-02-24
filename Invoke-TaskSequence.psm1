@@ -342,7 +342,13 @@ function Invoke-TaskSequence {
 		log " " -NoTS
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+		
+		if($Log) {
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+		}
+		else {
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1
+		}
 		log " " -NoTS
 		log "------------------------------" -L 1
 		log "Done sending commands to session." -L 1

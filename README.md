@@ -1,7 +1,12 @@
 # THIS SCRIPT IS A WORK IN PROGRESS
 
 # Summary
-Triggers an MECM Task Sequence (TS) deployed by communicating directly with a machine's MECM client.
+Triggers an MECM Task Sequence (TS) on one or more remote machines by communicating directly with the machines' MECM client.  
+
+This is accomplished on each machine by:  
+1. Entering a remote powershell session to the target machine.
+2. Modifying the target deployment's local assignment (a.k.a. advertisement) data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before.
+3. Triggering the "schedule" for the newly-modified assignment, which causes the TS to start.
 
 # Usage
 WIP
@@ -26,12 +31,6 @@ $comps = @(1..10) | ForEach-Object {
 }
 Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A"
 ```
-
-# Behavior
-This is accomplished by the following steps:
-1. Enters a remote powershell session to the target machine.
-2. Modifies the deployment's local assignment (a.k.a. advertisement) data stored in WMI to trick it into thinking the target TS deployment is _Required_, and that it has never been run before.
-3. Triggers the "schedule" for the newly-modified assignment, which causes the TS to start.
 
 # Parameters
 
