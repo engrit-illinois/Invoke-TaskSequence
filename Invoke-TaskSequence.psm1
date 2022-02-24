@@ -128,6 +128,8 @@ function Invoke-TaskSequence {
 	}
 	
 	function Do-Delay {
+		$validDelay = $true
+		
 		if($DelayUntilDateTime) {
 			log "-DelayUntilDateTime was specified."
 			log "It is now: `"$now`"." -L 1
@@ -136,7 +138,8 @@ function Invoke-TaskSequence {
 			$delaySeconds = Get-DelayInSeconds
 			
 			if($delaySeconds -le 1) {
-				log "The value specified for -DelayUntilDateTime is in the past. Delay will be skipped." -L 1
+				log "The value specified for -DelayUntilDateTime was calculated to be in the past! Enter a valid future DateTime for -DelayUntilDateTime, or omit it to run immediately." -L 1
+				$validDelay = $false
 			}
 			else {
 				log "Delaying `"$delaySeconds`" seconds until `"$DelayUntilDateTime`"..." -L 1
@@ -147,6 +150,8 @@ function Invoke-TaskSequence {
 		else {
 			log "-DelayUntilDateTime was not specified."
 		}
+		
+		$validDelay
 	}
 	
 	function Get-ScriptBlock {
@@ -349,8 +354,10 @@ function Invoke-TaskSequence {
 	
 	function Do-Stuff {
 		Do-Delay
-		$ComputerNames | ForEach-Object {
-			Do-Session $_
+		if($validDelay) {
+			$ComputerNames | ForEach-Object {
+				Do-Session $_
+			}
 		}
 	}
 	
