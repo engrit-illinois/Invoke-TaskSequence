@@ -180,8 +180,8 @@ function Invoke-TaskSequence {
 					$Msg = "$ts$Msg"
 				}
 				
-				#Write-Host $Msg
-				Write-Information $Msg -InformationAction "Continue"
+				Write-Host $Msg
+				#Write-Information $Msg -InformationAction "Continue"
 			}
 			
 			function Get-TsAd {
@@ -189,14 +189,14 @@ function Invoke-TaskSequence {
 				$tsAds = Get-CimInstance -Namespace "root\ccm\policy\machine\actualconfig" -Class "CCM_TaskSequence"
 				
 				if(-not $tsAds) {
-					log "    Failed to retrieve local TS advertisements from WMI!"
+					log "Failed to retrieve local TS advertisements from WMI!" -L 1
 				}
 				else {
-					log "Getting local advertisement for deployment `"$($TsDeploymentId)`" of TS `"$($TsPackageId)`"..."
+					log "Getting local advertisement for deployment `"$($TsDeploymentId)`" of TS `"$($TsPackageId)`"..." -L 1
 					$tsAd = $tsAds | Where-Object { ($_.PKG_PackageID -eq $TsPackageId) -and ($_.ADV_AdvertisementID -eq $TsDeploymentId) }
 					
 					if(-not $tsAd) {
-						log "    Failed to get local advertisement!"
+						log "Failed to get local advertisement!" -L 2
 					}
 				}
 				
@@ -212,15 +212,15 @@ function Invoke-TaskSequence {
 			
 			function Set-RerunAlways($tsAd) {
 				# Set the RepeatRunBehavior property of this local advertisement to trick the client into thinking it should always rerun, regardless of previous success/failure
-				log "    ADV_RepeatRunBehavior is currently set to `"$($tsAd.ADV_RepeatRunBehavior)`"."
+				log "ADV_RepeatRunBehavior is currently set to `"$($tsAd.ADV_RepeatRunBehavior)`"." -L 1
 				if($tsAd.ADV_RepeatRunBehavior -notlike "RerunAlways") {
-					log "        Changing ADV_RepeatRunBehavior to `"RerunAlways`"."
+					log "Changing ADV_RepeatRunBehavior to `"RerunAlways`"." -L 2
 					$tsAd.ADV_RepeatRunBehavior = "RerunAlways"
 					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					log "        ADV_RepeatRunBehavior is now set to `"$($tsAd.ADV_RepeatRunBehavior)`"."
+					log "ADV_RepeatRunBehavior is now set to `"$($tsAd.ADV_RepeatRunBehavior)`"." -L 2
 				}
 				else {
-					log "        No need to change ADV_RepeatRunBehavior."
+					log "No need to change ADV_RepeatRunBehavior." -L 2
 				}
 				
 				$tsAd
@@ -228,15 +228,15 @@ function Invoke-TaskSequence {
 			
 			function Set-Mandatory($tsAd) {
 				# Set the MandatoryAssignments property of this local advertisement to trick the client into thinking it's a Required deployment, regardless of whether it actually is
-				log "    ADV_MandatoryAssignments is currently set to `"$($tsAd.ADV_MandatoryAssignments)`"."
+				log "ADV_MandatoryAssignments is currently set to `"$($tsAd.ADV_MandatoryAssignments)`"." -L 1
 				if($tsAd.ADV_MandatoryAssignments -ne $true) {
-					log "        Changing ADV_MandatoryAssignments to `"$true`"."
+					log "Changing ADV_MandatoryAssignments to `"$true`"." -L 2
 					$tsAd.ADV_MandatoryAssignments = $true
 					$tsAd = Set-CimInstance -CimInstance $tsAd -PassThru
-					log "        ADV_MandatoryAssignments is now set to `"$($tsAd.ADV_MandatoryAssignments)`"."
+					log "ADV_MandatoryAssignments is now set to `"$($tsAd.ADV_MandatoryAssignments)`"." -L 2
 				}
 				else {
-					log "        No need to change ADV_MandatoryAssignments."
+					log "No need to change ADV_MandatoryAssignments." -L 2
 				}
 				
 				$tsAd
@@ -244,20 +244,20 @@ function Invoke-TaskSequence {
 			
 			function Get-ScheduleId {
 				# Get the schedule for the newly modified advertisement
-				log "    Retrieving scheduler history from WMI..."
+				log "Retrieving scheduler history from WMI..." -L 1
 				$schedulerHistory = Get-CimInstance -Namespace "root\ccm\scheduler" -Class "CCM_Scheduler_History"
 				
 				if(-not $schedulerHistory) {
-					log "        Failed to retrieve scheduler history from WMI!"
+					log "Failed to retrieve scheduler history from WMI!" -L 2
 				}
 				else {
 					
-					log "    Getting schedule for local TS advertisement..."
+					log "Getting schedule for local TS advertisement..." -L 2
 					# ScheduleIDs look like "<DeploymentID>-<PackageID>-<ScheduleID>"
 					$scheduleId = $schedulerHistory | Where-Object { ($_.ScheduleID -like "*$($TsPackageId)*") -and ($_.ScheduleID -like "*$($TsDeploymentId)*") } | Select-Object -ExpandProperty ScheduleID
 					
 					if(-not $scheduleId) {
-						log "        Failed to get schedule for local TS advertisement!"
+						log "Failed to get schedule for local TS advertisement!" -L 3
 					}
 				}
 				
@@ -269,16 +269,15 @@ function Invoke-TaskSequence {
 				log "Triggering TS..."
 				
 				if(-not $TriggerImmediately) {
-					log "-TriggerImmediately was NOT specified. TS should be triggered on next deployment evaluation."
+					log "-TriggerImmediately was NOT specified. TS should be triggered on next deployment evaluation." -L 1
 				}
 				else {
-					log "-TriggerImmediately was specified. Triggering schedule for newly-modified local advertisement..."
+					log "-TriggerImmediately was specified. Triggering schedule for newly-modified local advertisement..." -L 1
 					Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
 				}
 			}
 			
 			function Do-Stuff {
-				Do-Test
 				$tsAd = Get-TsAd
 				if($tsAd) {
 					if($TriggerImmediately) {
@@ -294,6 +293,8 @@ function Invoke-TaskSequence {
 			}
 			
 			Do-Stuff
+			
+			log "EOS"
 		}
 		
 		$scriptBlock
@@ -314,7 +315,7 @@ function Invoke-TaskSequence {
 		log "Sending commands to session..." -L 1
 		#$scriptBlock = Get-TestScriptBlock
 		$scriptBlock = Get-ScriptBlock
-		$output = Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat
+		Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$TriggerImmediately,$LogLineTimestampFormat 6>&1
 		log "Done sending commands to session." -L 1
 		
 		log "Ending session..." -L 1
