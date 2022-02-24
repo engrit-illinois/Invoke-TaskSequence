@@ -248,8 +248,13 @@ function Invoke-TaskSequence {
 				}
 			}
 			
+			function Do-Test {
+				Write-Output "test5"
+			}
+			
 			function Do-Stuff {
 				Write-Output "test2"
+				Do-Test
 				$tsAd = Get-TsAd
 				if($tsAd) {
 					if($TriggerImmediately) {
