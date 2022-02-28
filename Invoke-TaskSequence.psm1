@@ -521,7 +521,8 @@ function Invoke-TaskSequence {
 		$manualConfirm = $false
 		
 		if(-not $Confirm) {
-			log "Review the above information. Are you sure you want to invoke this deployment? Enter y or n: " -FC "yellow" -NoNL
+			$num = @($ComputerNames).count
+			log "Review the above information. Are you sure you want to invoke this deployment on $num computers? Enter y or n: " -FC "yellow" -NoNL
 			$input = Read-Host
 			
 			if(
