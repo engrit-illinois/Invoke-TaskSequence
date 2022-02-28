@@ -4,9 +4,6 @@ function Invoke-TaskSequence {
 		[string[]]$ComputerNames,
 		
 		[Parameter(Mandatory=$true)]
-		[string]$TsPackageId,
-		
-		[Parameter(Mandatory=$true)]
 		[string]$TsDeploymentId,
 		
 		[DateTime]$DelayUntilDateTime,
@@ -14,6 +11,12 @@ function Invoke-TaskSequence {
 		[switch]$DontTriggerImmediately,
 		
 		[switch]$TestRun,
+		
+		[switch]$Confirm,
+		
+		[string]$SiteCode="MP0",
+		[string]$Provider="sccmcas.ad.uillinois.edu",
+		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1",
 		
 		# ":ENGRIT:" will be replaced with "c:\engrit\logs\$($MODULE_NAME)_:TS:.log"
 		# ":TS:" will be replaced with start timestamp
@@ -115,10 +118,60 @@ function Invoke-TaskSequence {
 			}
 		}
 	}
-
+	
+	function Prep-MECM {
+		log "Preparing connection to MECM..."
+		$success = $true
+		
+		$initParams = @{}
+		
+		log "Importing ConfigurationManager PowerShell module..." -L 1
+		if((Get-Module ConfigurationManager) -eq $null) {
+			# The ConfigurationManager Powershell module switched filepaths at some point around CB 18##
+			# So you may need to modify this to match your local environment
+			try {
+				Import-Module $CMPSModulePath @initParams -Scope Global -ErrorAction "Stop"
+			}
+			catch {
+				log "Failed to import ConfigurationManager PowerShell module!" -E -L 2
+				$success = $false
+			}
+		}
+		else {
+			log "ConfigurationManager PowerShell module already imported." -L 2
+		}
+		
+		if($success) {
+			log "Connecting to MECM site provider drive..." -L 1
+			if((Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue) -eq $null) {
+				try {
+					New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $Provider @initParams -ErrorAction "Stop"
+				}
+				catch {
+					log "Failed to connect to MECM site provider drive!" -E -L 2
+					$success = $false
+				}
+			}
+			else {
+				log "Already connected to MECM site provider drive." -L 2
+			}
+		}
+		
+		if($success) {
+			Set-Location "$($SiteCode):\" @initParams
+			log "Done prepping connection to MECM." -L 1
+		}
+		else {
+			log "MECM connection prep did not succeed!" -L 1 -E
+		}
+		
+		$success
+	}
+	
 	function Get-DelayInSeconds {
 		log "Getting delay in seconds..." -L 1
 		$now = Get-Date
+		log "It is now: `"$now`"." -L 2
 		$delay = $DelayUntilDateTime - $now
 		$secondsTotal = $delay.TotalSeconds
 		$seconds = [int]$secondsTotal
@@ -132,7 +185,6 @@ function Invoke-TaskSequence {
 		
 		if($DelayUntilDateTime) {
 			log "-DelayUntilDateTime was specified."
-			log "It is now: `"$now`"." -L 1
 			log "Specified time is: `"$DelayUntilDateTime`"." -L 1
 			
 			$delaySeconds = Get-DelayInSeconds
@@ -151,14 +203,17 @@ function Invoke-TaskSequence {
 			log "-DelayUntilDateTime was not specified."
 		}
 		
+		if(-not $validDelay) {
+			log "Invalid delay!" -E -L 1
+		}
+		
 		$validDelay
 	}
 	
 	function Get-ScriptBlock {
 		$scriptBlock = {
 			param(
-				[string]$TsPackageId,
-				[string]$TsDeploymentId,
+				$dep,
 				[bool]$DontTriggerImmediately=$false,
 				[bool]$TestRun=$false,
 				[string]$LogLineTimestampFormat,
@@ -200,8 +255,8 @@ function Invoke-TaskSequence {
 					log "Failed to retrieve local TS advertisements from WMI!" -L 1
 				}
 				else {
-					log "Getting local advertisement for deployment `"$($TsDeploymentId)`" of TS `"$($TsPackageId)`"..." -L 1
-					$tsAd = $tsAds | Where-Object { ($_.PKG_PackageID -eq $TsPackageId) -and ($_.ADV_AdvertisementID -eq $TsDeploymentId) }
+					log "Getting local advertisement for deployment `"$($dep.DeploymentID)`" of TS `"$($dep.PackageID)`"..." -L 1
+					$tsAd = $tsAds | Where-Object { ($_.PKG_PackageID -eq $dep.PackageID) -and ($_.ADV_AdvertisementID -eq $dep.DeploymentID) }
 					
 					if(-not $tsAd) {
 						log "Failed to get local advertisement!" -L 2
@@ -286,7 +341,7 @@ function Invoke-TaskSequence {
 					
 					log "Getting schedule for local TS advertisement..." -L 2
 					# ScheduleIDs look like "<DeploymentID>-<PackageID>-<ScheduleID>"
-					$scheduleId = $schedulerHistory | Where-Object { ($_.ScheduleID -like "*$($TsPackageId)*") -and ($_.ScheduleID -like "*$($TsDeploymentId)*") } | Select-Object -ExpandProperty ScheduleID
+					$scheduleId = $schedulerHistory | Where-Object { ($_.ScheduleID -like "*$($dep.PackageID)*") -and ($_.ScheduleID -like "*$($dep.DeploymentID)*") } | Select-Object -ExpandProperty ScheduleID
 					
 					if(-not $scheduleId) {
 						log "Failed to get schedule for local TS advertisement!" -L 3
@@ -333,7 +388,7 @@ function Invoke-TaskSequence {
 		$scriptBlock
 	}
 	
-	function Do-Session($comp) {
+	function Do-Session($comp, $dep) {
 		log "Starting PSSession to `"$comp`"..."
 		$session = New-PSSession -ComputerName $comp
 		
@@ -344,10 +399,10 @@ function Invoke-TaskSequence {
 		$scriptBlock = Get-ScriptBlock
 		
 		if($Log) {
-			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
 		}
 		else {
-			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $TsPackageId,$TsDeploymentId,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1
 		}
 		log " " -NoTS
 		log "------------------------------" -L 1
@@ -362,19 +417,148 @@ function Invoke-TaskSequence {
 		log "Inputs:"
 		$names = $ComputerNames -join "`",`""
 		log "-ComputerNames: `"$names`"." -L 1
-		log "-TsPackageId: `"$TsPackageId`"." -L 1
 		log "-TsDeploymentId: `"$TsDeploymentId`"." -L 1
 		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"." -L 1
 		log "-DontTriggerImmediately: `"$DontTriggerImmediately`"." -L 1
 		log "-TestRun: `"$TestRun`"." -L 1
 	}
 	
+	function Get-IntentString($intent) {
+		$string = "unknown"
+		# https://docs.microsoft.com/en-us/mem/configmgr/develop/reference/apps/sms_appdeploymentassetdetails-server-wmi-class
+		switch($intent) {
+			"1" { $string = "Required" }
+			"2" { $string = "Available" }
+			"3" { $string = "Simulate" }
+			default { $string = "unrecognized" }
+		}
+		$string
+	}
+	
+	function Get-ConfigTypeString($configType) {
+		$string = "unknown"
+		# https://docs.microsoft.com/en-us/mem/configmgr/develop/reference/compliance/sms_ciassignmentbaseclass-server-wmi-class
+		switch($configType) {
+			"1" { $string = "REQUIRED" }
+			"2" { $string = "NOT_ALLOWED" }
+			default { $string = "unrecognized" }
+		}
+		$string
+	}
+	
+	function Get-FeatureTypeString($featureType) {
+		$string = "unknown"
+		# https://docs.microsoft.com/en-us/mem/configmgr/develop/reference/apps/sms_deploymentsummary-server-wmi-class
+		switch($featureType) {
+			"1" { $string = "Application" }
+			"2" { $string = "Program" }
+			"3" { $string = "MobileProgram" }
+			"4" { $string = "Script" }
+			"5" { $string = "SoftwareUpdate" }
+			"6" { $string = "Baseline" }
+			"7" { $string = "TaskSequence" }
+			"8" { $string = "ContentDistribution" }
+			"9" { $string = "DistributionPointGroup" }
+			"10" { $string = "DistributionPointHealth" }
+			"11" { $string = "ConfigurationPolicy" }
+			"28" { $string = "AbstractConfigurationItem" }
+			default { $string = "unrecognized" }
+		}
+		$string
+	}
+	
+	function Get-ObjectTypeString($objectType) {
+		$string = "unknown"
+		# https://docs.microsoft.com/en-us/mem/configmgr/develop/reference/apps/sms_deploymentsummary-server-wmi-class
+		switch($objectType) {
+			"200" { $string = "SMS_CIAssignment" }
+			"201" { $string = "SMS_Advertisement" }
+			default { $string = "unrecognized" }
+		}
+		$string
+	}
+	
+	function Get-Dep {
+		log "Retrieving data for deployment `"$TsDeploymentId`"..."
+		
+		$dep = Get-CMDeployment -DeploymentId $TsDeploymentId
+		if($dep) {
+			log "Found deployment:" -L 1
+			log "ApplicationName: `"$($dep.ApplicationName)`" (`"$($dep.PackageID)`")." -L 2
+			log "CollectionName: `"$($dep.CollectionName)`" (`"$($dep.CollectionID)`")." -L 2
+			$intent = Get-IntentString $dep.DeploymentIntent
+			log "DeploymentIntent: `"$($dep.DeploymentIntent)`" (`"$intent`")." -L 2
+			$configType = Get-ConfigTypeString $dep.DesiredConfigType
+			log "DesiredConfigType: `"$($dep.DesiredConfigType)`" (`"$configType`")." -L 2
+			$featureType = Get-FeatureTypeString $dep.FeatureType
+			log "FeatureType: `"$($dep.FeatureType)`" (`"$featureType`")." -L 2
+			$objectType = Get-ObjectTypeString $dep.ObjectTypeID
+			log "ObjectTypeID: `"$($dep.ObjectTypeID)`" (`"$objectType`")." -L 2
+		}
+		
+		$dep
+	}
+	
+	function Test-Dep($dep) {
+		$test = $false
+		
+		if($dep) {
+			if($dep.FeatureType -eq "7") {
+				$test = $true
+			}
+			else {
+				log "Deployment is not a Task Sequence!" -E
+			}
+		}
+		else {
+			log "Failed to retrieve deployment from MECM!" -E
+		}
+		
+		$test
+	}
+	
+	function Test-Confirm($dep) {
+		$manualConfirm = $false
+		
+		if(-not $Confirm) {
+			log "Review the above information. Are you sure you want to invoke this deployment? Enter y or n: " -FC "yellow" -NoNL
+			$input = Read-Host
+			
+			if(
+				($input -eq "y") -or
+				($input -eq "Y")
+			) {
+				$manualConfirm = $true
+				log "User confirmed." -FC "green" -L 1
+			}
+			else {
+				log "User aborted!" -E -L 1
+			}
+		}
+		else {
+			log "-Confirm was specified. Skipping manual confirmation."
+			$manualConfirm = $true
+		}
+		
+		$manualConfirm
+	}
+	
 	function Do-Stuff {
 		Log-Inputs
-		$validDelay = Do-Delay
-		if($validDelay) {
-			$ComputerNames | ForEach-Object {
-				Do-Session $_
+		
+		$myPWD = $pwd.path
+		if(Prep-MECM) {
+			$dep = Get-Dep
+			Set-Location $myPWD
+			
+			if(Test-Dep $dep) {
+				if(Test-Confirm $dep) {
+					if(Do-Delay) {
+						$ComputerNames | ForEach-Object {
+							Do-Session $_ $dep
+						}
+					}
+				}
 			}
 		}
 	}

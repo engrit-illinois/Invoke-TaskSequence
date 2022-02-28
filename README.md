@@ -39,12 +39,6 @@ Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentI
 Required string array.  
 An array of strings representing one or more names of computers to target.  
 
-### -TsPackageId \<string\>
-Required string.  
-The PackageID of the desired TS to be run.  
-Get this from the MECM console.  
-The TS must be deployed to the target machine(s), to Software Center.  
-
 ### -TsDeploymentId \<string\>
 Required string.  
 The DeploymentID of the desired deployment of the desired TS.  
@@ -71,6 +65,28 @@ Optional switch.
 When specified, the script operates as normal, except it skips performing any operations which actually have an effect on the remote machine(s).  
 This includes the modification of the deployment's local assignment data, and the triggering of the assignment's schedule.  
 Useful to get a report of whether the given TS/Deployment exists in the remote machine's local assignment data, and how it is currently configured.  
+
+### -Confirm
+Optional switch.  
+When omitted, the script will pause to ask for confirmation, after displaying information about the given deployment.  
+When specified, this manual confirmation is skipped.  
+
+### -SiteCode
+Optional string, representing the Site Code ID for your SCCM site.  
+Default value is `MP0`, because that's the author's site.  
+You can change the default value near the top of the script.  
+
+### -Provider
+Optional string, representing the hostname of your provider.  
+Use whatever you use in the console GUI application.  
+Default value is `sccmcas.ad.uillinois.edu`, because that's the author's provider.  
+You can change the default value near the top of the script.  
+
+### -CMPSModulePath
+Optional string, representing the local path where the ConfigurationManager Powershell module exists.  
+Default value is `$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1`, because there's where it is for us.  
+You may need to change this, depending on your SCCM (Console) version. The path has changed across various versions of SCCM, but the environment variable used by default should account for those changes in most cases.  
+You can change the default value near the top of the script.  
 
 ### -Log \<string\>
 Optional string.  
