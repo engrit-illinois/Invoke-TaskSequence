@@ -438,9 +438,10 @@ function Invoke-TaskSequence {
 	function Get-ConfigTypeString($configType) {
 		$string = "unknown"
 		# https://docs.microsoft.com/en-us/mem/configmgr/develop/reference/compliance/sms_ciassignmentbaseclass-server-wmi-class
+		# https://stackoverflow.com/questions/14748402/uninstalling-applications-using-sccm-sdk
 		switch($configType) {
-			"1" { $string = "REQUIRED" }
-			"2" { $string = "NOT_ALLOWED" }
+			"1" { $string = "REQUIRED (a.k.a. `"Install`")" }
+			"2" { $string = "NOT_ALLOWED (a.k.a. `"Uninstall`")" }
 			default { $string = "unrecognized" }
 		}
 		$string
@@ -487,9 +488,9 @@ function Invoke-TaskSequence {
 			log "ApplicationName: `"$($dep.ApplicationName)`" (`"$($dep.PackageID)`")." -L 2
 			log "CollectionName: `"$($dep.CollectionName)`" (`"$($dep.CollectionID)`")." -L 2
 			$intent = Get-IntentString $dep.DeploymentIntent
-			log "DeploymentIntent: `"$($dep.DeploymentIntent)`" (`"$intent`")." -L 2
+			log "DeploymentIntent (a.k.a. `"Purpose`"): `"$($dep.DeploymentIntent)`" (`"$intent`")." -L 2
 			$configType = Get-ConfigTypeString $dep.DesiredConfigType
-			log "DesiredConfigType: `"$($dep.DesiredConfigType)`" (`"$configType`")." -L 2
+			log "DesiredConfigType (a.k.a. `"Action`"): `"$($dep.DesiredConfigType)`" (`"$configType`")." -L 2
 			$featureType = Get-FeatureTypeString $dep.FeatureType
 			log "FeatureType: `"$($dep.FeatureType)`" (`"$featureType`")." -L 2
 			$objectType = Get-ObjectTypeString $dep.ObjectTypeID
