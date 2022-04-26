@@ -33,6 +33,14 @@ $comps = @(1..10) | ForEach-Object {
 Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
 ```
 
+The below example will run on computers `comp-name-0` through `comp-name-9`.  
+```powershell
+$comps = @(0..9) | ForEach-Object {
+	"comp-name-$($_)"
+}
+Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
+```
+
 # Parameters
 
 ### -ComputerNames \<string[]\>
