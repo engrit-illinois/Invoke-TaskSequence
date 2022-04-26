@@ -15,13 +15,13 @@ Note: this is primarily intended for running TSes deployed as _Available_, on de
 # Examples
 
 ### Run on one machine
-`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
 
 ### Wait for a given delay, and then run on one machine
-`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00" -Log ":ENGRIT:"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01" -TsDeploymentId "MP02137A" -DelayUntilDateTime "2050-01-01 23:00:00" -Log ":ENGRIT:"`
 
 ### Run on multiple specific machines
-`Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
+`Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
 
 ### Run on multiple sequentially-named lab machines
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
@@ -30,7 +30,7 @@ $comps = @(1..10) | ForEach-Object {
 	$num = ([string]$_).PadLeft(2,"0")
 	"comp-name-$($num)"
 }
-Invoke-TaskSequence -ComputerNames $comps -TsPackageId "MP002DF7" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
+Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
 ```
 
 # Parameters
