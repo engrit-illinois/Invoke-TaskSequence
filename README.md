@@ -24,19 +24,19 @@ Note: this is primarily intended for running TSes deployed as _Available_, on de
 `Invoke-TaskSequence -ComputerNames "comp-name-01","comp-name-37" -TsDeploymentId "MP02137A" -Log ":ENGRIT:"`
 
 ### Run on multiple sequentially-named lab machines
+The below example will run on computers `comp-name-0` through `comp-name-9`.  
+```powershell
+$comps = @(0..9) | ForEach-Object {
+	"comp-name-$($_)"
+}
+Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
+```
+
 The below example will run on computers `comp-name-01` through `comp-name-10`.  
 ```powershell
 $comps = @(1..10) | ForEach-Object {
 	$num = ([string]$_).PadLeft(2,"0")
 	"comp-name-$($num)"
-}
-Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
-```
-
-The below example will run on computers `comp-name-0` through `comp-name-9`.  
-```powershell
-$comps = @(0..9) | ForEach-Object {
-	"comp-name-$($_)"
 }
 Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
 ```
