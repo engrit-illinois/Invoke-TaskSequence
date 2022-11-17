@@ -9,7 +9,7 @@ This is accomplished on each machine by:
 Note: this is primarily intended for running TSes deployed as _Available_, on demand. It may work for TSes deployed as _Required_, but this is not fully tested. I will do more testing with _Required_ deployments in the future.  
 
 # Usage
-1. Download `Invoke-TaskSequence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Invoke-TaskSequence\Invoke-TaskSequence.psm1`.
+1. Download `Invoke-TaskSequence.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it using the examples and documentation provided below.
 
 # Examples
