@@ -244,7 +244,7 @@ function Invoke-TaskSequence {
 					$Msg = "$ts$Msg"
 				}
 				
-				Write-Information $Msg
+				Write-Host $Msg
 			}
 			
 			function Get-TsAd {
@@ -364,7 +364,8 @@ function Invoke-TaskSequence {
 					}
 					else {
 						log "Triggering schedule for newly-modified local advertisement..." -L 1
-						Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
+						$output = Invoke-WmiMethod -Namespace "root\ccm" -Class "SMS_Client" -Name "TriggerSchedule" -ArgumentList $scheduleID
+						log ($output | Out-String)
 					}
 				}
 			}
@@ -395,14 +396,14 @@ function Invoke-TaskSequence {
 		log "Sending commands to session..." -L 1
 		log "------------------------------" -L 1
 		log " " -NoTS
-		#$scriptBlock = Get-TestScriptBlock
+		
 		$scriptBlock = Get-ScriptBlock
 		
 		if($Log) {
-			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Tee-Object -FilePath $Log -Append
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1 | Out-File -FilePath $Log -Append
 		}
 		else {
-			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent 6>&1
+			Invoke-Command -Session $session -ScriptBlock $scriptBlock -ArgumentList $dep,$DontTriggerImmediately,$TestRun,$LogLineTimestampFormat,$Indent
 		}
 		log " " -NoTS
 		log "------------------------------" -L 1
