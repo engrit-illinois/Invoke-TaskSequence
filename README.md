@@ -41,6 +41,16 @@ $comps = @(1..10) | ForEach-Object {
 Invoke-TaskSequence -ComputerNames $comps -TsDeploymentId "MP02137A" -Log ":ENGRIT:"
 ```
 
+### Find the TS deployment (a.k.a. "advertisement") ID of the deployment(s) for a given TS
+```powershell
+$tsName = "UIUC-ENGR-Instructional Win11 2025a v2.3g"
+$ts = Get-CMTaskSequence -Fast -Name $tsName
+$ts | Select Name,PackageId | Out-Host
+$tsPackageId = $ts.PackageId
+$tsDeployment = Get-CMTaskSequenceDeployment -Fast -TaskSequenceId $tsPackageId
+$tsDeployment | Select AdvertisementName,PackageId,AdvertisementId | Out-Host
+```
+
 # Parameters
 
 ### -ComputerNames \<string[]\>
