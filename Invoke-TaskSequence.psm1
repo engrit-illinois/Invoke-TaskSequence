@@ -1,7 +1,12 @@
 function Invoke-TaskSequence {
 	param(
 		[Parameter(Mandatory=$true)]
-		[string[]]$ComputerNames,
+		# The following syntax implicitly typecasts the input array to string, which can cause problems later on
+		# e.g. If the input is an array of PSCustom objects the implicit typecasting will result in an array of strings something like: "@{Name=comp-name-01}","@{Name=comp-name-02}"
+		# This will trick any cmdlets or validation expecting string into thinking this is valid input, which it isn't.
+		#[string[]]$ComputerNames,
+		# So instead we'll just accept any input, without typecasting it, and then our validation will work as expected.
+		$ComputerNames,
 		
 		[Parameter(Mandatory=$true)]
 		[string]$TsDeploymentId,
@@ -391,6 +396,7 @@ function Invoke-TaskSequence {
 	
 	function Do-Session($comp, $dep) {
 		log "Starting PSSession to `"$comp`"..."
+		
 		$session = New-PSSession -ComputerName $comp
 		
 		log "Sending commands to session..." -L 1
@@ -422,6 +428,16 @@ function Invoke-TaskSequence {
 		log "-DelayUntilDateTime: `"$DelayUntilDateTime`"." -L 1
 		log "-DontTriggerImmediately: `"$DontTriggerImmediately`"." -L 1
 		log "-TestRun: `"$TestRun`"." -L 1
+	}
+	
+	function Validate-ComputerNames {
+		log "Validating -ComputerNames parameter input..."
+		$ComputerNames | ForEach-Object {
+			log "Item: `"$_`", Type: `"$($_.GetType())`"" -L 1
+			if($_ -isnot [string]) {
+				Throw "One or more of the items specified for the -ComputerName parameter are not a string!"
+			}
+		}
 	}
 	
 	function Get-IntentString($intent) {
@@ -548,6 +564,7 @@ function Invoke-TaskSequence {
 	
 	function Do-Stuff {
 		Log-Inputs
+		Validate-Computernames
 		
 		$myPWD = $pwd.path
 		if(Prep-MECM) {
