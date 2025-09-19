@@ -8,6 +8,8 @@ This is accomplished on each machine by:
 
 Because this relies on the mechanism described above, this only works for TSe deployed to "Configuration Manager Clients". So it doesn't work for TSes which are only deployed to "media and PXE". Also, this is primarily intended for running TSes deployed as _Available_, on demand. It may work for TSes deployed as _Required_, but this is not fully tested.  
 
+Similarly, it will also only work if the target endpoints are in their maintenance window period (unless no maintenance windows are configured, in which case it should work immediately). In theory, executing the module against an endpoint while outside of the endpoint's maintenance window should cause the TS to wait and start immediately once the endpoint enters its maintenance window. However as this can be a risky proposition, that's why the delay parameters are provided. It should be kept in mind that if the TS does not immediately start (due to the endpoint being being in its maintenance window), the module will still affect the changes noted above, and the client will remain "tricked" into thinking the TS is _Required_ and scheduled.  
+
 # Usage
 1. Download `Invoke-TaskSequence.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it using the examples and documentation provided below.
